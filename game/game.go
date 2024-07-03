@@ -11,8 +11,8 @@ type Game struct {
 
 func NewGame() *Game {
 	board := NewBoard()
-	player1 := NewPlayer("Player 1", "white")
-	player2 := NewPlayer("Player 2", "black")
+	player1 := NewPlayer("Player 1", "red")
+	player2 := NewPlayer("Player 2", "blue")
 
 	return &Game{
 		board:         board,
