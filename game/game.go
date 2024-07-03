@@ -26,11 +26,11 @@ func (g *Game) Start() {
 	for {
 		g.board.Display()
 		xFrom, yFrom, xTo, yTo := g.currentPlayer.GetMove()
-		if !g.board.IsValidMove(xFrom, yFrom, xTo, yTo) {
+		if !g.board.CheckMove(xFrom, yFrom, xTo, yTo) {
 			fmt.Println("Invalid move, try again.")
 			continue
 		}
-		if g.board.IsWin() {
+		if g.board.CheckWin() {
 			g.board.Display()
 			fmt.Printf("%s wins!\n", g.currentPlayer.name)
 			return
