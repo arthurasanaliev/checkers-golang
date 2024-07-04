@@ -12,10 +12,10 @@ func NewBoard() *Board {
 	return &Board{
 		[8][8]string{
 			{"⬜", "🔵", "⬜", "🔵", "⬜", "🔵", "⬜", "🔵"},
-			{"🔵", "⬜", "🔵", "⬜", "🔵", "⬜", "🔵", "⬜"},
-			{"⬜", "🔵", "⬜", "🔵", "⬜", "🔵", "⬜", "🔵"},
+			{"🔵", "⬜", "🔵", "⬜", "⬛", "⬜", "🔵", "⬜"},
+			{"⬜", "⬛", "⬜", "🔵", "⬜", "🔵", "⬜", "🔵"},
 			{"⬛", "⬜", "⬛", "⬜", "⬛", "⬜", "⬛", "⬜"},
-			{"⬜", "⬛", "⬜", "⬛", "⬜", "⬛", "⬜", "⬛"},
+			{"⬜", "🔵", "⬜", "⬛", "⬜", "⬛", "⬜", "⬛"},
 			{"🔴", "⬜", "🔴", "⬜", "🔴", "⬜", "🔴", "⬜"},
 			{"⬜", "🔴", "⬜", "🔴", "⬜", "🔴", "⬜", "🔴"},
 			{"🔴", "⬜", "🔴", "⬜", "🔴", "⬜", "🔴", "⬜"},
@@ -25,14 +25,19 @@ func NewBoard() *Board {
 
 func (b *Board) Display() {
 	for i := 0; i < 8; i++ {
+		fmt.Printf("%d ", i)
 		for j := 0; j < 8; j++ {
 			fmt.Print(b.board[i][j])
 		}
 		fmt.Println()
 	}
+	fmt.Print("   ")
+	for i := 0; i < 8; i++ {
+		fmt.Printf("%d ", i)
+	}
+	fmt.Println()
 }
 
-// only for common pieces for now
 func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 	absInt := func(x int) int {
 		if x < 0 {
@@ -53,14 +58,71 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 	updateBoard := func(x1, y1, x2, y2 int) {
 		b.board[x1][y1], b.board[x2][y2] = b.board[x2][y2], b.board[x1][y1]
 	}
+	hasPiece := func(x, y int) bool {
+		return !emptyCell(x, y) && b.board[xFrom][yFrom] != b.board[x][y]
+	}
+
+	xLap := [4]int{2, 2, -2, -2}
+	xIn := [4]int{1, 1, -1, -1}
+	yLap := [4]int{2, -2, 2, -2}
+	yIn := [4]int{1, -1, 1, -1}
+
+	used := [8][8]bool{}
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			used[i][j] = false
+		}
+	}
+
+	correctMove := false
+
+	var checkTakes func(x, y int)
+
+	checkTakes = func(x, y int) {
+		used[x][y] = true
+		cnt := 0
+		for k := 0; k < 4; k++ {
+			dx := x + xLap[k]
+			dy := y + yLap[k]
+			dxIn := x + xIn[k]
+			dyIn := y + yIn[k]
+			if !outOfBoundaries(dx) && !outOfBoundaries(dy) && hasPiece(dxIn, dyIn) && emptyCell(dx, dy) && !used[dx][dy] {
+				piece := b.board[dxIn][dyIn]
+				if (dxIn+dyIn)%2 == 0 {
+					b.board[dxIn][dyIn] = "⬜"
+				} else {
+					b.board[dxIn][dyIn] = "⬛"
+				}
+				checkTakes(dx, dy)
+				if correctMove {
+					return
+				}
+				cnt++
+				b.board[dxIn][dyIn] = piece
+			}
+		}
+		if cnt == 0 {
+			fmt.Println(x, y)
+			if x == xTo && y == yTo {
+				correctMove = true
+			}
+		}
+	}
 
 	if outOfBoundaries(xFrom) || outOfBoundaries(yFrom) || outOfBoundaries(xTo) || outOfBoundaries(yTo) {
 		return false
 	}
-	if mustTake() {
-
+	if emptyCell(xFrom, yFrom) || !emptyCell(xTo, yTo) {
+		return false
 	}
-	if invalidMove(xFrom, yFrom, xTo, yTo) || emptyCell(xFrom, yFrom) || !emptyCell(xTo, yTo) {
+
+	checkTakes(xFrom, yFrom)
+	if correctMove {
+		updateBoard(xFrom, yFrom, xTo, yTo)
+		return true
+	}
+
+	if invalidMove(xFrom, yFrom, xTo, yTo) {
 		return false
 	}
 

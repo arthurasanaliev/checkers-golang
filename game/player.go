@@ -16,7 +16,7 @@ func NewPlayer(name, color string) *Player {
 
 func (p *Player) GetMove() (int, int, int, int) {
 	var xFrom, yFrom, xTo, yTo int
-	fmt.Printf("%s, choose a piece you want to move: ")
+	fmt.Printf("%s, choose a piece you want to move: ", p.name)
 	fmt.Scanf("%d %d", &xFrom, &yFrom)
 	fmt.Print("Now choose a cell you want to move to: ")
 	fmt.Scanf("%d %d", &xTo, &yTo)
