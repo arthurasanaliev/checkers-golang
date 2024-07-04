@@ -102,11 +102,30 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 			}
 		}
 		if cnt == 0 {
-			fmt.Println(x, y)
 			if x == xTo && y == yTo {
 				correctMove = true
 			}
 		}
+	}
+
+	otherCanTake := func() bool {
+		for x := 0; x < 8; x++ {
+			for y := 0; y < 8; y++ {
+				if (x == xFrom && y == yFrom) || b.board[xFrom][yFrom] != b.board[x][y] {
+					continue
+				}
+				for k := 0; k < 4; k++ {
+					dx := x + xLap[k]
+					dy := y + yLap[k]
+					dxIn := x + xIn[k]
+					dyIn := y + yIn[k]
+					if !outOfBoundaries(dx) && !outOfBoundaries(dy) && hasPiece(dxIn, dyIn) && emptyCell(dx, dy) {
+						return true
+					}
+				}
+			}
+		}
+		return false
 	}
 
 	if outOfBoundaries(xFrom) || outOfBoundaries(yFrom) || outOfBoundaries(xTo) || outOfBoundaries(yTo) {
@@ -120,6 +139,10 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 	if correctMove {
 		updateBoard(xFrom, yFrom, xTo, yTo)
 		return true
+	}
+
+	if otherCanTake() {
+		return false
 	}
 
 	if invalidMove(xFrom, yFrom, xTo, yTo) {
