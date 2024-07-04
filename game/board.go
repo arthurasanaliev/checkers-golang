@@ -16,7 +16,7 @@ func NewBoard() *Board {
 			{"⬜", "⬛", "⬜", "🔵", "⬜", "🔵", "⬜", "🔵"},
 			{"⬛", "⬜", "⬛", "⬜", "⬛", "⬜", "⬛", "⬜"},
 			{"⬜", "🔵", "⬜", "⬛", "⬜", "⬛", "⬜", "⬛"},
-			{"🔴", "⬜", "🔴", "⬜", "🔴", "⬜", "🔴", "⬜"},
+			{"⬛", "⬜", "⬛", "⬜", "🔴", "⬜", "🔴", "⬜"},
 			{"⬜", "🔴", "⬜", "🔴", "⬜", "🔴", "⬜", "🔴"},
 			{"🔴", "⬜", "🔴", "⬜", "🔴", "⬜", "🔴", "⬜"},
 		},
@@ -50,7 +50,16 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 		return x < 0 || x >= 8
 	}
 	invalidMove := func(x1, y1, x2, y2 int) bool {
-		return absInt(x1-x2) != 1 || absInt(y1-y2) != 1
+		if absInt(x1-x2) != 1 || absInt(y1-y2) != 1 {
+			return true
+		}
+		if b.board[x1][y1] == "🔴" && x2 > x1 {
+			return true
+		}
+		if b.board[x1][y1] == "🔵" && x2 < x1 {
+			return true
+		}
+		return false
 	}
 	emptyCell := func(x, y int) bool {
 		return b.board[x][y] == "⬜" || b.board[x][y] == "⬛"
@@ -129,9 +138,11 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 	}
 
 	if outOfBoundaries(xFrom) || outOfBoundaries(yFrom) || outOfBoundaries(xTo) || outOfBoundaries(yTo) {
+		fmt.Println("The coordinates are out of boundaries")
 		return false
 	}
 	if emptyCell(xFrom, yFrom) || !emptyCell(xTo, yTo) {
+		fmt.Println("Wrong cell")
 		return false
 	}
 
@@ -142,10 +153,12 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 	}
 
 	if otherCanTake() {
+		fmt.Println("Other pieces can take")
 		return false
 	}
 
 	if invalidMove(xFrom, yFrom, xTo, yTo) {
+		fmt.Println("Invalid move")
 		return false
 	}
 

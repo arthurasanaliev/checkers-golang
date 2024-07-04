@@ -11,8 +11,8 @@ type Game struct {
 
 func NewGame() *Game {
 	board := NewBoard()
-	player1 := NewPlayer("Player 1", "red")
-	player2 := NewPlayer("Player 2", "blue")
+	player1 := NewPlayer("Red Player", "red")
+	player2 := NewPlayer("Blue Player", "blue")
 
 	return &Game{
 		board:         board,
@@ -27,7 +27,6 @@ func (g *Game) Start() {
 		g.board.Display()
 		xFrom, yFrom, xTo, yTo := g.currentPlayer.GetMove()
 		if !g.board.CheckMove(xFrom, yFrom, xTo, yTo) {
-			fmt.Println("Invalid move, try again.")
 			continue
 		}
 		if g.board.CheckWin() {
