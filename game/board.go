@@ -137,6 +137,14 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 		return false
 	}
 
+	checkQueen := func(x, y int) bool {
+		if b.board[x][y] == "🟣" || b.board[x][y] == "🟠" {
+			return true
+		} else {
+			return false
+		}
+	}
+
 	if outOfBoundaries(xFrom) || outOfBoundaries(yFrom) || outOfBoundaries(xTo) || outOfBoundaries(yTo) {
 		fmt.Println("The coordinates are out of boundaries")
 		return false
@@ -146,9 +154,21 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 		return false
 	}
 
+	if checkQueen(xFrom, yFrom) {
+		val := b.CheckMoveQueen(xFrom, yFrom, xTo, yTo)
+		return val
+	}
+
 	checkTakes(xFrom, yFrom)
 	if correctMove {
 		updateBoard(xFrom, yFrom, xTo, yTo)
+		if xTo == 0 || xTo == 7 {
+			if b.board[xTo][yTo] == "🔴" {
+				b.board[xTo][yTo] = "🟠"
+			} else {
+				b.board[xTo][yTo] = "🟣"
+			}
+		}
 		return true
 	}
 
@@ -164,7 +184,19 @@ func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
 
 	updateBoard(xFrom, yFrom, xTo, yTo)
 
+	if xTo == 0 || xTo == 7 {
+		if b.board[xTo][yTo] == "🔴" {
+			b.board[xTo][yTo] = "🟠"
+		} else {
+			b.board[xTo][yTo] = "🟣"
+		}
+	}
+
 	return true
+}
+
+func (b *Board) CheckMoveQueen(xFrom, yFrom, xTo, yTo int) bool {
+	return false // TO-DO
 }
 
 func (b *Board) CheckWin() bool {
