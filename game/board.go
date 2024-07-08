@@ -39,164 +39,73 @@ func (b *Board) Display() {
 }
 
 func (b *Board) CheckMove(xFrom, yFrom, xTo, yTo int) bool {
+	// helper variables
 	absInt := func(x int) int {
 		if x < 0 {
 			return -x
 		}
 		return x
 	}
+	moveX := [4]int{2, 2, -2, -2}
+	moveY := [4]int{2, -2, 2, -2}
+	takeX := [4]int{1, 1, -1, -1}
+	takeY := [4]int{1, -1, 1, -1}
 
-	outOfBoundaries := func(x int) bool {
+	// logic funtions
+	printMoveStop := func() {
+		fmt.Println("Another player moves")
+	}
+	printInvalidMove := func() {
+		fmt.Println("Invalid move")
+	}
+	printMoveGo := func() {
+		fmt.Println("Continue moving")
+	}
+	outOfBounds := func(x int) bool {
 		return x < 0 || x >= 8
 	}
-	invalidMove := func(x1, y1, x2, y2 int) bool {
-		if absInt(x1-x2) != 1 || absInt(y1-y2) != 1 {
-			return true
-		}
-		if b.board[x1][y1] == "🔴" && x2 > x1 {
-			return true
-		}
-		if b.board[x1][y1] == "🔵" && x2 < x1 {
-			return true
-		}
-		return false
-	}
 	emptyCell := func(x, y int) bool {
-		return b.board[x][y] == "⬜" || b.board[x][y] == "⬛"
+		return b.board[x][y] == "⬜" || b.board[x][y] != "⬛"
 	}
-	updateBoard := func(x1, y1, x2, y2 int) {
+	redPiece := func(x, y int) bool {
+		return b.board[x][y] == "🔴"
+	}
+	bluePiece := func(x, y int) bool {
+		return b.board[x][y] == "🔵"
+	}
+	difPieces := func(x1, y1, x2, y2 int) bool {
+		return (redPiece(x1, y1) && bluePiece(x2, y2) || 
+						bluePiece(x1, y1) && redPiece(x2, y2))
+	}
+	validMove := func(x, y int) (bool, int, int) {
+		for k := 0; k < 4; k++ {
+			r, c := x + moveX[k], y + moveY[k]
+			rTake, cTake := x + takeX[k], y + takeY[k]
+			if !outOfBounds(r) && !outOfBounds(c) && difPieces(x, y, rTake, cTake) {
+				if r == xTo && c == yTo {
+					return true, rTake, cTake
+				}
+			}
+		}
+		return false, -1, -1
+	}
+	switchCells := func(x1, y1, x2, y2 int) {
 		b.board[x1][y1], b.board[x2][y2] = b.board[x2][y2], b.board[x1][y1]
 	}
-	hasPiece := func(x, y int) bool {
-		return !emptyCell(x, y) && b.board[xFrom][yFrom] != b.board[x][y]
-	}
 
-	xLap := [4]int{2, 2, -2, -2}
-	xIn := [4]int{1, 1, -1, -1}
-	yLap := [4]int{2, -2, 2, -2}
-	yIn := [4]int{1, -1, 1, -1}
-
-	used := [8][8]bool{}
-	for i := 0; i < 8; i++ {
-		for j := 0; j < 8; j++ {
-			used[i][j] = false
-		}
-	}
-
-	correctMove := false
-
-	var checkTakes func(x, y int)
-
-	checkTakes = func(x, y int) {
-		used[x][y] = true
-		cnt := 0
-		for k := 0; k < 4; k++ {
-			dx := x + xLap[k]
-			dy := y + yLap[k]
-			dxIn := x + xIn[k]
-			dyIn := y + yIn[k]
-			if !outOfBoundaries(dx) && !outOfBoundaries(dy) && hasPiece(dxIn, dyIn) && emptyCell(dx, dy) && !used[dx][dy] {
-				piece := b.board[dxIn][dyIn]
-				if (dxIn+dyIn)%2 == 0 {
-					b.board[dxIn][dyIn] = "⬜"
-				} else {
-					b.board[dxIn][dyIn] = "⬛"
-				}
-				checkTakes(dx, dy)
-				if correctMove {
-					return
-				}
-				cnt++
-				b.board[dxIn][dyIn] = piece
-			}
-		}
-		if cnt == 0 {
-			if x == xTo && y == yTo {
-				correctMove = true
-			}
-		}
-	}
-
-	otherCanTake := func() bool {
-		for x := 0; x < 8; x++ {
-			for y := 0; y < 8; y++ {
-				if (x == xFrom && y == yFrom) || b.board[xFrom][yFrom] != b.board[x][y] {
-					continue
-				}
-				for k := 0; k < 4; k++ {
-					dx := x + xLap[k]
-					dy := y + yLap[k]
-					dxIn := x + xIn[k]
-					dyIn := y + yIn[k]
-					if !outOfBoundaries(dx) && !outOfBoundaries(dy) && hasPiece(dxIn, dyIn) && emptyCell(dx, dy) {
-						return true
-					}
-				}
-			}
-		}
+	if outOfBounds(xFrom) || outOfBounds(yFrom) || outOfBounds(xTo) || outOfBounds(yTo) {
+		printInvalidMove()
 		return false
 	}
-
-	checkQueen := func(x, y int) bool {
-		if b.board[x][y] == "🟣" || b.board[x][y] == "🟠" {
-			return true
-		} else {
-			return false
-		}
-	}
-
-	if outOfBoundaries(xFrom) || outOfBoundaries(yFrom) || outOfBoundaries(xTo) || outOfBoundaries(yTo) {
-		fmt.Println("The coordinates are out of boundaries")
+	if emptyCell(xFrom, yFrom) && !emptyCell(xTo, yTo) {
+		printInvalidMove()
 		return false
 	}
-	if emptyCell(xFrom, yFrom) || !emptyCell(xTo, yTo) {
-		fmt.Println("Wrong cell")
-		return false
+	good, r, c := validMove(xFrom, yFrom)
+	if good {
+		switchCells(xFrom, yFrom, xTo, yTo)
+
 	}
-
-	if checkQueen(xFrom, yFrom) {
-		val := b.CheckMoveQueen(xFrom, yFrom, xTo, yTo)
-		return val
-	}
-
-	checkTakes(xFrom, yFrom)
-	if correctMove {
-		updateBoard(xFrom, yFrom, xTo, yTo)
-		if xTo == 0 || xTo == 7 {
-			if b.board[xTo][yTo] == "🔴" {
-				b.board[xTo][yTo] = "🟠"
-			} else {
-				b.board[xTo][yTo] = "🟣"
-			}
-		}
-		return true
-	}
-
-	if otherCanTake() {
-		fmt.Println("Other pieces can take")
-		return false
-	}
-
-	if invalidMove(xFrom, yFrom, xTo, yTo) {
-		fmt.Println("Invalid move")
-		return false
-	}
-
-	updateBoard(xFrom, yFrom, xTo, yTo)
-
-	if xTo == 0 || xTo == 7 {
-		if b.board[xTo][yTo] == "🔴" {
-			b.board[xTo][yTo] = "🟠"
-		} else {
-			b.board[xTo][yTo] = "🟣"
-		}
-	}
-
-	return true
-}
-
-func (b *Board) CheckMoveQueen(xFrom, yFrom, xTo, yTo int) bool {
-	return false // TO-DO
 }
 
 func (b *Board) CheckWin() bool {
